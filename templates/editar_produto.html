@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Produto - Sistema de Estoque</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="logo">
+                <i class="fas fa-boxes"></i>
+                <h2>StockFlow</h2>
+            </div>
+            
+            <div class="user-info">
+                <i class="fas fa-user-circle"></i>
+                <div>
+                    <h3>{{ session.get('username', 'Usuário') }}</h3>
+                    <p>Administrador</p>
+                </div>
+            </div>
+            
+            <ul class="nav-menu">
+                <li>
+                    <a href="{{ url_for('dashboard') }}">
+                        <i class="fas fa-home"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="active">
+                    <a href="{{ url_for('estoque') }}">
+                        <i class="fas fa-box-open"></i>
+                        <span>Estoque</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('relatorios') }}">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Relatórios</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('register') }}">
+                        <i class="fas fa-user-plus"></i>
+                        <span>Novo Admin</span>
+                    </a>
+                </li>
+            </ul>
+            
+            <div class="logout-btn">
+                <a href="{{ url_for('logout') }}">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Sair</span>
+                </a>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <div class="header-title">
+                    <h1><i class="fas fa-edit"></i> Editar Produto</h1>
+                    <p>Atualize as informações do produto #{{ produto.id }}</p>
+                </div>
+                <div class="header-actions">
+                    <a href="{{ url_for('estoque') }}" class="btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Voltar ao Estoque
+                    </a>
+                </div>
+            </header>
+
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flash-messages">
+                        {% for category, message in messages %}
+                            <div class="flash {{ category }}">
+                                <i class="fas fa-{% if category == 'success' %}check-circle{% elif category == 'error' %}exclamation-circle{% else %}info-circle{% endif %}"></i>
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <!-- Formulário de Edição -->
+            <div class="product-form animate">
+                <h3><i class="fas fa-edit"></i> Editar Informações do Produto</h3>
+                <form method="POST" class="form-grid">
+                    <div class="form-group">
+                        <label for="marca">Marca *</label>
+                        <input type="text" id="marca" name="marca" 
+                               value="{{ produto.marca }}" required
+                               placeholder="Ex: Nike, Adidas">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="modelo">Modelo / Tipo *</label>
+                        <input type="text" id="modelo" name="modelo" 
+                               value="{{ produto.modelo }}" required
+                               placeholder="Ex: Tênis, Camiseta">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="tamanho">Tamanho</label>
+                        <input type="text" id="tamanho" name="tamanho" 
+                               value="{{ produto.tamanho or '' }}"
+                               placeholder="Ex: P, M, G, 42">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="quantidade">Quantidade *</label>
+                        <input type="number" id="quantidade" name="quantidade" 
+                               value="{{ produto.quantidade }}" required min="0"
+                               placeholder="Quantidade em estoque">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="preco">Preço (R$) *</label>
+                        <input type="number" step="0.01" id="preco" name="preco" 
+                               value="{{ produto.preco }}" required min="0"
+                               placeholder="Preço unitário">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="data_entrada">Data de Entrada *</label>
+                        <input type="date" id="data_entrada" name="data_entrada" 
+                               value="{{ produto.data_entrada }}" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="data_saida">Data de Saída (opcional)</label>
+                        <input type="date" id="data_saida" name="data_saida" 
+                               value="{{ produto.data_saida or '' }}"
+                               placeholder="Deixe em branco se ainda está em estoque">
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" onclick="window.history.back()" class="btn-secondary">
+                            <i class="fas fa-times"></i> Cancelar
+                        </button>
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-save"></i> Salvar Alterações
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Informações do Produto -->
+            <div class="table-container animate">
+                <div class="table-header">
+                    <h3><i class="fas fa-info-circle"></i> Informações do Produto</h3>
+                </div>
+                <div class="info-grid">
+                    <div class="info-card">
+                        <div class="info-icon">
+                            <i class="fas fa-hashtag"></i>
+                        </div>
+                        <div class="info-content">
+                            <span class="info-label">ID do Produto</span>
+                            <span class="info-value">#{{ produto.id }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="info-card">
+                        <div class="info-icon">
+                            <i class="fas fa-calendar-plus"></i>
+                        </div>
+                        <div class="info-content">
+                            <span class="info-label">Data de Cadastro</span>
+                            <span class="info-value">{{ produto.data_cadastro }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="info-card">
+                        <div class="info-icon">
+                            <i class="fas fa-tag"></i>
+                        </div>
+                        <div class="info-content">
+                            <span class="info-label">Status do Estoque</span>
+                            <span class="info-value">
+                                {% if produto.data_saida %}
+                                    <span class="badge badge-warning">
+                                        <i class="fas fa-box-open"></i> Saída em {{ produto.data_saida }}
+                                    </span>
+                                {% else %}
+                                    <span class="badge badge-success">
+                                        <i class="fas fa-box"></i> Em Estoque
+                                    </span>
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="info-card">
+                        <div class="info-icon">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <div class="info-content">
+                            <span class="info-label">Valor Total</span>
+                            <span class="info-value">
+                                R$ {{ "%.2f"|format(produto.quantidade * produto.preco) }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Histórico de Ações -->
+            <div class="table-container animate">
+                <div class="table-header">
+                    <h3><i class="fas fa-history"></i> Histórico de Ações</h3>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Ação</th>
+                                <th>Detalhes</th>
+                                <th>Usuário</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>{{ produto.data_cadastro }}</td>
+                                <td>
+                                    <span class="badge badge-success">
+                                        <i class="fas fa-plus"></i> Cadastro
+                                    </span>
+                                </td>
+                                <td>Produto cadastrado no sistema</td>
+                                <td>Sistema</td>
+                            </tr>
+                            
+                            {% if produto.data_saida %}
+                            <tr>
+                                <td>{{ produto.data_saida }}</td>
+                                <td>
+                                    <span class="badge badge-warning">
+                                        <i class="fas fa-sign-out-alt"></i> Saída
+                                    </span>
+                                </td>
+                                <td>Produto marcado como saída do estoque</td>
+                                <td>{{ session.get('username', 'Administrador') }}</td>
+                            </tr>
+                            {% endif %}
+                            
+                            <tr>
+                                <td id="current-date"></td>
+                                <td>
+                                    <span class="badge badge-info">
+                                        <i class="fas fa-edit"></i> Edição
+                                    </span>
+                                </td>
+                                <td>Atualização das informações do produto</td>
+                                <td>{{ session.get('username', 'Administrador') }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Data atual no histórico
+        document.addEventListener('DOMContentLoaded', function() {
+            const now = new Date();
+            const dateStr = now.toISOString().split('T')[0];
+            const dateElement = document.getElementById('current-date');
+            if (dateElement) {
+                dateElement.textContent = dateStr;
+            }
+            
+            // Validação do formulário
+            const form = document.querySelector('form');
+            form.addEventListener('submit', function(e) {
+                const quantidade = document.getElementById('quantidade').value;
+                const preco = document.getElementById('preco').value;
+                const dataEntrada = document.getElementById('data_entrada').value;
+                const dataSaida = document.getElementById('data_saida').value;
+                
+                // Validar quantidade
+                if (quantidade < 0) {
+                    e.preventDefault();
+                    alert('A quantidade não pode ser negativa');
+                    document.getElementById('quantidade').focus();
+                    return false;
+                }
+                
+                // Validar preço
+                if (preco <= 0) {
+                    e.preventDefault();
+                    alert('O preço deve ser maior que zero');
+                    document.getElementById('preco').focus();
+                    return false;
+                }
+                
+                // Validar datas
+                if (dataSaida && dataEntrada && dataSaida < dataEntrada) {
+                    e.preventDefault();
+                    alert('A data de saída não pode ser anterior à data de entrada');
+                    document.getElementById('data_saida').focus();
+                    return false;
+                }
+                
+                return true;
+            });
+        });
+    </script>
+</body>
+</html>

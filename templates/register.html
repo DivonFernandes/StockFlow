@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastrar - Sistema de Estoque</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-box animate">
+            <div class="auth-header">
+                <i class="fas fa-user-plus"></i>
+                <h2>Cadastrar Administrador</h2>
+                <p>Crie sua conta para acessar o sistema</p>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flash-messages">
+                        {% for category, message in messages %}
+                            <div class="flash {{ category }}">
+                                <i class="fas fa-{% if category == 'success' %}check-circle{% elif category == 'error' %}exclamation-circle{% else %}info-circle{% endif %}"></i>
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            {% if error %}
+                <div class="flash error">
+                    <i class="fas fa-exclamation-circle"></i>
+                    {{ error }}
+                </div>
+            {% endif %}
+
+            <form method="POST" class="auth-form">
+                <div class="form-group">
+                    <i class="fas fa-user"></i>
+                    <input type="text" name="username" placeholder="Nome de usuário" required>
+                </div>
+                
+                <div class="form-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" name="password" placeholder="Senha" required>
+                </div>
+                
+                <div class="form-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" name="confirm_password" placeholder="Confirmar senha" required>
+                </div>
+                
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-user-plus"></i> Cadastrar
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                <p>Já tem uma conta?</p>
+                <a href="{{ url_for('login') }}" class="auth-link">
+                    <i class="fas fa-sign-in-alt"></i> Fazer login
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Validação de senha
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const password = document.querySelector('input[name="password"]').value;
+            const confirmPassword = document.querySelector('input[name="confirm_password"]').value;
+            
+            if (password !== confirmPassword) {
+                e.preventDefault();
+                alert('As senhas não coincidem!');
+                return false;
+            }
+            
+            if (password.length < 6) {
+                e.preventDefault();
+                alert('A senha deve ter pelo menos 6 caracteres!');
+                return false;
+            }
+        });
+
+        // Efeito nos inputs
+        document.querySelectorAll('.form-group input').forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.classList.add('focused');
+            });
+            
+            input.addEventListener('blur', function() {
+                if (!this.value) {
+                    this.parentElement.classList.remove('focused');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
